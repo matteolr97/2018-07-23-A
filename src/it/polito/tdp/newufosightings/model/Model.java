@@ -33,19 +33,18 @@ public void creaGrafo(String forma, int anno) {
 	dao.loadAllStates(idMap);
 	states = dao.loadAllStates(idMap);
 	Graphs.addAllVertices(grafo, idMap.values());
-	for(State state:this.grafo.vertexSet()) {
-	neighbors = dao.getVicini(idMap, state);
-	for(State s: neighbors) {
-		int correlazione = dao.getCorrelazione(state,s,forma, anno);
-		DefaultWeightedEdge d = grafo.getEdge(state, s);
-		if(d==null)
-			Graphs.addEdge(grafo, state, s, correlazione);
+	List<Vicini> links = new ArrayList<>(dao.loadAllColl(idMap, anno, forma));
+	
+	for(Vicini c : links) {
+		
+		grafo.addEdge(c.getStato1(), c.getStato2());
+		DefaultWeightedEdge e = grafo.getEdge(c.getStato1(), c.getStato2());
+		grafo.setEdgeWeight(grafo.getEdge(c.getStato1(), c.getStato2()), c.getPeso());
+		
 	}
 		
 	}
-	System.out.println("Vertici = "+grafo.vertexSet().size());
-	System.out.println("Archi = "+grafo.edgeSet().size());
-}
+	
 public int getVertexSize() {
 	// TODO Auto-generated method stub
 	return this.grafo.vertexSet().size();

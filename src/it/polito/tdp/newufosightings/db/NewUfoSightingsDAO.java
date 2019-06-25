@@ -11,6 +11,7 @@ import java.util.Map;
 
 import it.polito.tdp.newufosightings.model.Sighting;
 import it.polito.tdp.newufosightings.model.State;
+import it.polito.tdp.newufosightings.model.Vicini;
 
 public class NewUfoSightingsDAO {
 
@@ -95,21 +96,29 @@ public class NewUfoSightingsDAO {
 			throw new RuntimeException("Error Connection Database");
 		}
 	}
-	public List<State> getVicini(Map<String,State>idMap, State state){
-		String sql = "SELECT state1 FROM neighbor WHERE state2=? ";
-		List<State> result = new ArrayList<State>();
+	public List<Vicini> loadAllColl(Map<String,State> MappaStati,int anno,String shape) {
+		String sql = "SELECT n.state1 AS s1 , n.state2 AS s2,COUNT(*) AS n  " + 
+				"FROM neighbor AS n , sighting AS s1, sighting AS s2  " + 
+				"WHERE s1.state=n.state1 AND s2.state = n.state2 AND YEAR(s1.DATETIME)= year(s2.DATETIME)  " + 
+				"AND s1.shape=s2.shape AND s1.shape=  ?  " + 
+				"AND  YEAR(s1.DATETIME)=  ?  " + 
+				"GROUP BY s1,s2   ";
+		List<Vicini> result = new ArrayList<Vicini>();
+
 		try {
 			Connection conn = ConnectDB.getConnection();
 			PreparedStatement st = conn.prepareStatement(sql);
-			st.setString(1, state.getId());
+			st.setInt(2, anno);
+			st.setString(1, shape);
 			ResultSet rs = st.executeQuery();
 
 			while (rs.next()) {
-				State s = idMap.get(rs.getString("state1"));
-				if(s == null)
-					System.out.println("ERRORE");
-				else 
-					result.add(s);
+				State s1 = MappaStati.get(rs.getString("s1"));
+				State s2 = MappaStati.get(rs.getString("s2"));
+				int peso = rs.getInt("n");
+				
+				result.add(new Vicini(s1, s2, peso));
+				
 			}
 
 			conn.close();
@@ -121,42 +130,8 @@ public class NewUfoSightingsDAO {
 			throw new RuntimeException("Error Connection Database");
 		}
 	}
-
-	public int getCorrelazione(State state, State s, String forma, int anno) {
-		String sql = "SELECT COUNT(*) \n" + 
-				"FROM  sighting AS s1, sighting AS s2 \n" + 
-				"WHERE s1.shape = s2.shape \n" + 
-				"AND s1.shape = ? \n" + 
-				"AND s1.state=? \n" + 
-				"AND s2.state=? AND s2.shape=? \n" + 
-				"AND YEAR(s1.DATETIME)=YEAR(s2.DATETIME)AND YEAR(s1.DATETIME)=? ";
-		int count=0;		
-		try {
-					Connection conn = ConnectDB.getConnection();
-					PreparedStatement st = conn.prepareStatement(sql);
-					st.setString(1, state.getId());
-					st.setString(2, s.getId());
-					st.setString(3, forma);
-					st.setString(4, forma);
-					st.setInt(5, anno);
-
-					ResultSet res = st.executeQuery();
-
-					while (res.next()) {
-					count ++;	
-						
-					}
-					
-
-					conn.close();
-
-				} catch (SQLException e) {
-					throw new RuntimeException(e);
-				}
-
-				return count;
-
-	}
+	
+	
 
 }
 
