@@ -9,6 +9,7 @@ public class State {
 	private int area;
 	private int population;
 	private String neighbors;
+	private int somma = 0;
 
 	public State(String id, String name, String capital, Double lat, Double lng, int area, int population,
 			String neighbors) {
@@ -116,5 +117,15 @@ public class State {
 			return false;
 		return true;
 	}
+
+	public int getSomma() {
+		return somma;
+	}
+
+	public void setSomma(int somma) {
+		this.somma = somma;
+	}
+
+	
 
 }
